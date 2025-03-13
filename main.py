@@ -1,11 +1,22 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pydantic import BaseModel, EmailStr
 from items_views import router as items_router
 import uvicorn
 from users.vies import router as users_router
-app = FastAPI()
+from core.models import Base,db_helper
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with db_helper.engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(items_router)
 app.include_router(users_router)
+
+
+
 
 class CreateUser(BaseModel):
     email: EmailStr
@@ -40,7 +51,5 @@ def add(a: int, b: int):
     }
 
 
-print('hellow')
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)
