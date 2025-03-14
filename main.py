@@ -1,8 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from apiv1 import router as router_v1
 from pydantic import BaseModel, EmailStr
+
+from apiv1.products.vies import router
 from items_views import router as items_router
 import uvicorn
+from core.config import settings
 from users.vies import router as users_router
 from core.models import Base,db_helper
 @asynccontextmanager
@@ -12,6 +16,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(router=router_v1,prefix=settings.api_v1_prefix)
 app.include_router(items_router)
 app.include_router(users_router)
 
